@@ -1,6 +1,7 @@
 require "pry"
 require "active_support"
 require "active_record"
+require "active_record/entity"
 require "active_record/repository"
 
 
@@ -53,10 +54,10 @@ RSpec.describe ActiveRecord::Entity do
     }.not_to raise_exception
   end
 
-  xit "does not allow initializing with values for attributes that are not defined" do
+  it "does not allow initializing with values for attributes that are not defined" do
     expect {
       User.new(id: 1, active: true, date_of_birth: Date.parse("1970-12-23"), undefined_field: 123)
-    }.to raise_exception
+    }.to raise_exception(ActiveModel::UnknownAttributeError)
   end
 
   it "allows updating attributes"
@@ -72,7 +73,7 @@ RSpec.describe ActiveRecord::Repository do
   xit "errors out if the repostitory fields don't include all the model attributes" do
     expect {
       UsersWithMissingField.find(1)
-    }.to raise_exception(ActiveRecord::UnknownAttributeReference)
+    }.to raise_exception(ActiveRecord::UnknownAttributeError)
   end
 
   it "allows saving an entity" do

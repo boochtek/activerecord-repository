@@ -1,62 +1,11 @@
 require "active_record/base"
+require "active_record/base_class_fix"
 
 
 module ActiveRecord
 
-  # We have to override Inheritance.ClassMethods.base_class, because we don't directly subclass from ActiveRecord::Base.
-  module BaseClassFix
-    def self.extended(mod)
-      define_method :base_class, -> { mod }
-      mod.class.__send__(:define_method, :abstract_class?, -> { false })
-      def connection_specification_name
-        "primary" # FIXME: This should be the default, but should be overridable, like normal ActiveRecord.
-      end
-      def connection
-        ActiveRecord::Base.connection
-      end
-    end
-  end
-
-
-  module Entity
-
-    def self.included(mod)
-      mod.extend ActiveModel::Naming
-      mod.include Core
-      mod.extend BaseClassFix
-      mod.include AttributeAssignment
-      mod.include Attributes
-      mod.include AttributeDecorators
-      # mod.include AttributeMethods # Has `primary_key`, which requires a schema and a connection.
-      mod.include Integration
-      mod.include Validations
-      mod.include Timestamp
-      mod.include Associations
-      mod.include NestedAttributes
-
-      def mod.reload_schema_from_cache
-      end
-
-      def mod.define_attribute_methods
-      end
-
-      def mod._default_attributes
-        []
-      end
-
-      def mod.column_names
-        attributes_to_define_after_schema_loads.keys
-      end
-    end
-
-    def respond_to_missing?(method_name, *args)
-      true
-    end
-
-    def method_missing(method_name, *args)
-      puts "method called: #{method_name}(#{args})"
-    end
-
+  def self.repostitory(model: nil, table_name: nil)
+    ::ActiveRecord::Repository
   end
 
   module Repository
@@ -137,14 +86,6 @@ module ActiveRecord
       end
     end
 
-  end
-
-  def self.entity(*_params)
-    ActiveRecord::Entity
-  end
-
-  def self.repostitory(model: nil, table_name: nil)
-    ActiveRecord::Repository
   end
 
 end
