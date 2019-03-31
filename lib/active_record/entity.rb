@@ -45,23 +45,31 @@ module ActiveRecord
       extra_attribute_keys = attribute_keys - self.class.attribute_types.keys.map(&:to_sym) - [:id]
       # Oddly, AR only names the first unknown attribute it sees.
       fail ActiveRecord::UnknownAttributeError.new(self, extra_attribute_keys.first) unless extra_attribute_keys.empty? || attrs[:ignore_extra_attributes]
-      # TODO: Get rid of extra attributes
-      @attributes = ActiveModel::AttributeSet.new(attrs.map{|k,v| [k.to_s, ActiveModel::Attribute.from_user(k.to_sym, v, self.class.attribute_types[k.to_s], v)]}.to_h)
+      attrs = attrs.reject{ |k,v| extra_attribute_keys.include?(k.to_sym) }
+      @attributes = ActiveModel::AttributeSet.new(attrs.map{ |k,v| [k.to_s, ActiveModel::Attribute.from_user(k.to_sym, v, self.class.attribute_types[k.to_s], v)] }.to_h)
     end
 
     def update(attrs = {})
       attrs.each do |k,v|
-        self.__send__("#{k}=".to_sym, v)
+        if attrs[:ignore_extra_attributes]
+          begin
+            self.__send__("#{k}=".to_sym, v)
+          rescue NoMethodError
+            nil
+          end
+        else
+          self.__send__("#{k}=".to_sym, v)
+        end
       end
     end
 
-    # NOTE: These are temporary, for troubleshooting.
-    def respond_to_missing?(_method_name, *_args)
-      true
-    end
-    def method_missing(method_name, *args)
-      puts "method called: #{method_name}(#{args})"
-    end
+    # NOTE: These are for troubleshooting only. They cause some tests to fail.
+    # def respond_to_missing?(_method_name, *_args)
+    #   true
+    # end
+    # def method_missing(method_name, *args)
+    #   puts "method called: #{method_name}(#{args})"
+    # end
 
   end
 

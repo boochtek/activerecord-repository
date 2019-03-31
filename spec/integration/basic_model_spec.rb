@@ -79,8 +79,23 @@ RSpec.describe ActiveRecord::Entity do
     }.not_to raise_exception
   end
 
-  it "does NOT allow updating attributes that are not defined"
-  it "DOES allow updating attributes that are not defined, if we pass `ignore_extra_attributes: true`"
+  it "does NOT allow updating attributes that are not defined" do
+    user = User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
+    expect {
+      user.undefined_field = "nice try!"
+    }.to raise_exception(NoMethodError)
+    expect {
+      user.update(undefined_field: "nice try!")
+    }.to raise_exception(NoMethodError)
+  end
+
+  it "DOES allow updating attributes that are not defined, if we pass `ignore_extra_attributes: true`" do
+    user = User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
+    expect {
+      user.update(undefined_field: "nice try!", ignore_extra_attributes: true)
+    }.not_to raise_exception
+  end
+
   it "allows accessing 'has_many' relations"
   it "allows accessing 'belongs_to' relations"
 
