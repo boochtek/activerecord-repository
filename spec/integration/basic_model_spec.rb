@@ -54,10 +54,16 @@ RSpec.describe ActiveRecord::Entity do
     }.not_to raise_exception
   end
 
-  it "does not allow initializing with values for attributes that are not defined" do
+  it "does NOT allow initializing with values for attributes that are not defined" do
     expect {
       User.new(id: 1, active: true, date_of_birth: Date.parse("1970-12-23"), undefined_field: 123)
     }.to raise_exception(ActiveModel::UnknownAttributeError)
+  end
+
+  it "DOES allow initializing with values for attributes that are not defined, if we pass `ignore_extra_attributes: true`" do
+    expect {
+      User.new(id: 1, active: true, date_of_birth: Date.parse("1970-12-23"), undefined_field: 123, ignore_extra_attributes: true)
+    }.not_to raise_exception
   end
 
   it "allows updating attributes"

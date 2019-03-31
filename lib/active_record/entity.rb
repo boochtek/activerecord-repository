@@ -11,11 +11,11 @@ module ActiveRecord
   module Entity
 
     # NOTE: There seems to be an AR module that prevents this initializer from running if its included.
-    def initialize(*attrs)
-      attribute_keys = attrs.select{ |x| x.is_a?(Hash) }.first.keys.map(&:to_sym) # TODO: Allow/merge multiple hashes.
+    def initialize(attrs = {})
+      attribute_keys = attrs.keys.map(&:to_sym)
       extra_attribute_keys = attribute_keys - self.class.column_names.map(&:to_sym) - [:id]
       # Oddly, AR only names the first unknown attribute it sees.
-      fail ActiveRecord::UnknownAttributeError.new(self, extra_attribute_keys.first) unless extra_attribute_keys.empty?
+      fail ActiveRecord::UnknownAttributeError.new(self, extra_attribute_keys.first) unless extra_attribute_keys.empty? || attrs[:ignore_extra_attributes]
     end
 
     def self.included(mod)
