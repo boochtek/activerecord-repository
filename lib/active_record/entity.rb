@@ -46,7 +46,13 @@ module ActiveRecord
       # Oddly, AR only names the first unknown attribute it sees.
       fail ActiveRecord::UnknownAttributeError.new(self, extra_attribute_keys.first) unless extra_attribute_keys.empty? || attrs[:ignore_extra_attributes]
       # TODO: Get rid of extra attributes
-      @attributes = ActiveModel::AttributeSet.new(attrs.map{|k,v| [k.to_s, ActiveModel::Attribute.from_user(k.to_sym, v, ActiveModel::Type::String.new, v)]}.to_h)
+      @attributes = ActiveModel::AttributeSet.new(attrs.map{|k,v| [k.to_s, ActiveModel::Attribute.from_user(k.to_sym, v, self.class.attribute_types[k.to_s], v)]}.to_h)
+    end
+
+    def update(attrs = {})
+      attrs.each do |k,v|
+        self.__send__("#{k}=".to_sym, v)
+      end
     end
 
     # NOTE: These are temporary, for troubleshooting.

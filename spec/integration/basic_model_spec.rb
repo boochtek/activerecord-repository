@@ -70,7 +70,12 @@ RSpec.describe ActiveRecord::Entity do
     user = User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
     expect {
       user.name = "Craig Buchek"
-      user.update(active: false)
+      expect(user.name).to eq("Craig Buchek")
+      user.active = false
+      expect(user.active).to eq(false)
+      user.update(name: "Bob", active: true)
+      expect(user.name).to eq("Bob")
+      expect(user.active).to eq(true)
     }.not_to raise_exception
   end
 
