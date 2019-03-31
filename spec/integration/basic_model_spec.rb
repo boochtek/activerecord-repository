@@ -30,7 +30,7 @@ class User
   include ActiveRecord.entity(datestamps: true)
   attribute :name, :string
   attribute :date_of_birth, :date # Gives you a validation for free
-  attribute :ssn, :integer  # , range: 000_00_0000..999_99_9999, required: false
+  attribute :ssn, :integer, required: false # , range: 000_00_0000..999_99_9999
   attribute :active, :boolean
   # has_many :children
   # belongs_to :company
@@ -98,6 +98,20 @@ RSpec.describe ActiveRecord::Entity do
 
   it "allows accessing 'has_many' relations"
   it "allows accessing 'belongs_to' relations"
+
+  describe "validations" do
+
+    it "requires setting all required attributes" do
+      user = User.new(id: 1, active: true, date_of_birth: nil)
+      expect(user).to_not be_valid
+      user = User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
+      expect(user).to be_valid
+    end
+
+    it "validates ranges"
+    it "validates types"
+
+  end
 
 end
 

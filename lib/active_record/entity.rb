@@ -15,6 +15,7 @@ module ActiveRecord
       mod.extend ActiveModel::Model # Includes AttributeAssignment, Validations, Conversion, Naming, Translation.
       mod.include ActiveModel::AttributeMethods
       mod.include ActiveModel::Attributes
+      mod.include ActiveModel::Validations
       # mod.include ActiveSupport::Callbacks
       # mod.include AttributeAssignment # Has `assign_attributes`.
       # mod.include Attributes # Has `attribute`.
@@ -37,6 +38,11 @@ module ActiveRecord
       # end
 
       mod.define_attribute_methods(mod.attribute_types.keys.map(&:to_sym))
+
+      def mod.attribute(name, type, options = {})
+        super(name, type)
+        validates name, presence: true if options.fetch(:required){ true }
+      end
 
     end
 
