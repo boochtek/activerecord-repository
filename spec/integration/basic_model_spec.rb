@@ -30,7 +30,7 @@ class User
   include ActiveRecord.entity(datestamps: true)
   attribute :name, :string
   attribute :date_of_birth, :date # Gives you a validation for free
-  attribute :ssn, :integer, range: 000_00_0000..999_99_9999, required: false
+  attribute :ssn, :integer  # , range: 000_00_0000..999_99_9999, required: false
   attribute :active, :boolean
   # has_many :children
   # belongs_to :company
@@ -50,24 +50,32 @@ end
 RSpec.describe ActiveRecord::Entity do
   it "allows initializing with defined attributes" do
     expect {
-      User.new(id: 1, active: true, date_of_birth: Date.parse("1970-12-23"))
+      User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
     }.not_to raise_exception
   end
 
   it "does NOT allow initializing with values for attributes that are not defined" do
     expect {
-      User.new(id: 1, active: true, date_of_birth: Date.parse("1970-12-23"), undefined_field: 123)
+      User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"), undefined_field: 123)
     }.to raise_exception(ActiveModel::UnknownAttributeError)
   end
 
   it "DOES allow initializing with values for attributes that are not defined, if we pass `ignore_extra_attributes: true`" do
     expect {
-      User.new(id: 1, active: true, date_of_birth: Date.parse("1970-12-23"), undefined_field: 123, ignore_extra_attributes: true)
+      User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"), undefined_field: 123, ignore_extra_attributes: true)
     }.not_to raise_exception
   end
 
-  it "allows updating attributes"
-  it "does not allow updating attributes that are not defined"
+  it "allows updating attributes" do
+    user = User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
+    expect {
+      user.name = "Craig Buchek"
+      user.update(active: false)
+    }.not_to raise_exception
+  end
+
+  it "does NOT allow updating attributes that are not defined"
+  it "DOES allow updating attributes that are not defined, if we pass `ignore_extra_attributes: true`"
   it "allows accessing 'has_many' relations"
   it "allows accessing 'belongs_to' relations"
 
