@@ -2,12 +2,23 @@ require "active_record/base"
 require "active_record/base_class_fix"
 
 
-module ActiveRecord
+module ActiveModel
 
-  def self.entity(*_params)
-    ::ActiveRecord::Entity
+  def self.entity(datestamps: true)
+    modules = [::ActiveModel::Entity]
+    modules << ::ActiveModel::Entity::DateStamps if datestamps
+    composite_module(modules)
   end
 
+  def self.composite_module(modules)
+    Module.new.tap { |composite_module|
+      composite_module.define_singleton_method(:included) do |entity_module|
+        modules.each do |mod|
+          entity_module.__send__(:include, mod)
+        end
+      end
+    }
+  end
 
   module Entity
 
@@ -48,11 +59,13 @@ module ActiveRecord
 
     def initialize(attrs = {})
       attribute_keys = attrs.keys.map(&:to_sym)
-      extra_attribute_keys = attribute_keys - self.class.attribute_types.keys.map(&:to_sym) - [:id]
+      allowed_attributes = self.class.attribute_types.keys.map(&:to_sym)
+      extra_attribute_keys = attribute_keys - allowed_attributes - [:id]
       # Oddly, AR only names the first unknown attribute it sees.
       fail ActiveRecord::UnknownAttributeError.new(self, extra_attribute_keys.first) unless extra_attribute_keys.empty? || attrs[:ignore_extra_attributes]
-      attrs = attrs.reject{ |k,v| extra_attribute_keys.include?(k.to_sym) }
-      @attributes = ActiveModel::AttributeSet.new(attrs.map{ |k,v| [k.to_s, ActiveModel::Attribute.from_user(k.to_sym, v, self.class.attribute_types[k.to_s], v)] }.to_h)
+      attrs = attrs.reject{ |k, _v| extra_attribute_keys.include?(k.to_sym) }
+      update()
+      @attributes = ActiveModel::AttributeSet.new(allowed_attributes.map{ |k, _v| [k.to_s, ActiveModel::Attribute.from_user(k.to_sym, attrs.fetch(k.to_sym, nil), self.class.attribute_types[k.to_s], attrs.fetch(k.to_sym, nil))] }.to_h)
     end
 
     def update(attrs = {})
@@ -76,6 +89,9 @@ module ActiveRecord
     # def method_missing(method_name, *args)
     #   puts "method called: #{method_name}(#{args})"
     # end
+
+    module DateStamps
+    end
 
   end
 

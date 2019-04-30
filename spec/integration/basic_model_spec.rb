@@ -14,9 +14,6 @@ ActiveRecord::ConnectionAdapters::ConnectionPool.new(connection_spec)
 ActiveRecord::Schema.define do
   self.verbose = false
 
-  enable_extension "plpgsql"
-  enable_extension "pgcrypto"
-
   create_table :users, force: true do |t|
     t.string :name, nil: false
     t.date :date_of_birth, nil: false
@@ -27,11 +24,12 @@ end
 
 
 class User
-  include ActiveRecord.entity(datestamps: true)
+  include ActiveModel.entity(datestamps: true)
   attribute :name, :string
   attribute :date_of_birth, :date # Gives you a validation for free
-  attribute :ssn, :integer, required: false # , range: 000_00_0000..999_99_9999
+  attribute :ssn, :integer #, required: false # , range: 000_00_0000..999_99_9999
   attribute :active, :boolean
+  validates :ssn, numericality: { greater_than_or_equal_to: 000_00_0000, less_than_or_equal_to: 999_99_9999, allow_nil: true }
   # has_many :children
   # belongs_to :company
 end
@@ -47,7 +45,7 @@ end
 # end
 
 
-RSpec.describe ActiveRecord::Entity do
+RSpec.describe ActiveModel::Entity do
   it "allows initializing with defined attributes" do
     expect {
       User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
@@ -104,12 +102,25 @@ RSpec.describe ActiveRecord::Entity do
     it "requires setting all required attributes" do
       user = User.new(id: 1, active: true, date_of_birth: nil)
       expect(user).to_not be_valid
-      user = User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
+      user = User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"), ssn: 123_45_6789)
       expect(user).to be_valid
     end
 
-    it "validates ranges"
-    it "validates types"
+    it "allows specifying `validates`" do
+      user = User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
+      user.update(ssn: 123_45_6789)
+      expect(user).to be_valid
+    end
+
+    it "validates types" do
+      user = User.new(id: 1, name: 12345, active: true, date_of_birth: "NOT A DATE", ssn: 123_45_6789)
+      expect(user).not_to be_valid
+      expect(user.errors[:date_of_birth]).to include("can't be blank")
+    end
+
+    it "allows `required: false` in `attribute` declaration"
+
+    it "validates ranges specified in `attribute` declaration"
 
   end
 
