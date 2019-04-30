@@ -64,8 +64,7 @@ module ActiveModel
       # Oddly, AR only names the first unknown attribute it sees.
       fail ActiveRecord::UnknownAttributeError.new(self, extra_attribute_keys.first) unless extra_attribute_keys.empty? || attrs[:ignore_extra_attributes]
       attrs = attrs.reject{ |k, _v| extra_attribute_keys.include?(k.to_sym) }
-      update()
-      @attributes = ActiveModel::AttributeSet.new(allowed_attributes.map{ |k, _v| [k.to_s, ActiveModel::Attribute.from_user(k.to_sym, attrs.fetch(k.to_sym, nil), self.class.attribute_types[k.to_s], attrs.fetch(k.to_sym, nil))] }.to_h)
+      @attributes = ActiveModel::AttributeSet.new((allowed_attributes + [:id]).map{ |k, _v| [k.to_s, ActiveModel::Attribute.from_user(k.to_sym, attrs.fetch(k.to_sym, nil), self.class.attribute_types[k.to_s], attrs.fetch(k.to_sym, nil))] }.to_h)
     end
 
     def update(attrs = {})
@@ -80,6 +79,11 @@ module ActiveModel
           self.__send__("#{k}=".to_sym, v)
         end
       end
+    end
+
+    def persisted?
+      # TODO: Handle other primary keys.
+      attributes["id"].present?
     end
 
     # NOTE: These are for troubleshooting only. They cause some tests to fail.

@@ -94,6 +94,13 @@ RSpec.describe ActiveModel::Entity do
     }.not_to raise_exception
   end
 
+  it "implements #persisted properly" do
+    user = User.new(name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"))
+    expect(user.persisted?).to be(false)
+    user.update(id: 123)
+    expect(user.persisted?).to be(true)
+  end
+
   it "allows accessing 'has_many' relations"
   it "allows accessing 'belongs_to' relations"
 
@@ -142,6 +149,12 @@ RSpec.describe ActiveRecord::Repository do
     }.not_to raise_exception
   end
 
+  it "updates an entity's ID on save" do
+    user = User.new(name: "Craig", active: false, date_of_birth: Date.parse("1970-12-23"), ssn: 123_45_6789)
+    User::Repository.save(user)
+    expect(user.id).not_to be_nil
+  end
+
   it "allows getting an entity by ID" do
     # FIXME: Relies on the previous test saving this to the DB.
     user = User::Repository.find(1)
@@ -150,6 +163,7 @@ RSpec.describe ActiveRecord::Repository do
   end
 
   it "allows getting entities by scope" do
+    # FIXME: Relies on previous tests saving the right things to the DB.
     active_users = User::Repository.active
     expect(active_users.methods).to include(:each)
     expect(active_users.length).to be(1)

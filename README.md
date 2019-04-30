@@ -16,10 +16,6 @@ TODO
         * Avoiding N+1 queries
 * Saving
     * Saving relations
-* Entity#persisted?
-    * Otherwise URLs created by Rails won't have the object's ID
-    * Just define `persisted?` as `id.present?`
-        * Have Repository.save update the item to add/update the `id` field
 * Probably need to restrict other calls to Repository
     * `User::Repository.create`
 * Entity#initialize and #update should basically be the same
