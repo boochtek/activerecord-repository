@@ -63,27 +63,38 @@ module ActiveRecord
       mod.initialize_find_by_cache # Core
       mod.__send__(:initialize_load_schema_monitor) # ModelSchema
 
+      # TODO: Make this more robust. Allow passing table_name as module parameter.
+      mod.table_name = mod.name.split("::").first.tableize
 
       # NOTE: Requires AttributeMethods.
       def mod.save(entity)
-        new(entity.to_h).save
+        new(entity.attributes.transform_keys(&:to_sym)).save
       end
 
       # NOTE: Requires AttributeMethods.
       def mod.save!(entity)
-        new(entity.to_h).save!
+        new(entity.attributes.transform_keys(&:to_sym)).save!
       end
 
-      # NOTE: These should probably be private.
+      # NOTE: These should probably be protected.
 
       def mod.where(*args, **kwargs, &block)
-        # TODO: Need to make this an Arel relation, not an Array.
-        super.map{ |x| User.new(x.attributes) }
+        # TODO: Make this more robust. Allow passing model's class as module parameter.
+        model_class = name.split("::").first.constantize
+        super.map{ |x| model_class.new(x.attributes.transform_keys(&:to_sym)) }
       end
 
       def mod.find(id)
         where(id: id).first
       end
+
+      class << mod
+
+        # Don't let anyone new up a Repository themselves.
+        private :new
+
+      end
+
     end
 
   end

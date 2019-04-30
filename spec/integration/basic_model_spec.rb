@@ -34,12 +34,12 @@ class User
   # belongs_to :company
 end
 
-class Users
+class User::Repository
   include ActiveRecord.repostitory(model: User, table_name: "users")
   scope :active, -> { where(active: true) }
 end
 
-# class UsersWithMissingField
+# class User::RepositoryWithMissingField
 #   include ActiveRecord.repostitory(model: User, table_name: "users_with_missing_field")
 #   scope :active, -> (){ where(active: true) }
 # end
@@ -131,31 +131,40 @@ RSpec.describe ActiveRecord::Repository do
 
   xit "errors out if the repostitory fields don't include all the model attributes" do
     expect {
-      UsersWithMissingField.find(1)
+      User::RepositoryWithMissingField.find(1)
     }.to raise_exception(ActiveRecord::UnknownAttributeError)
   end
 
   it "allows saving an entity" do
     expect {
-      Users.save(id: 1, active: true, date_of_birth: Date.parse("1970-12-23"))
+      user = User.new(id: 1, name: "Craig", active: true, date_of_birth: Date.parse("1970-12-23"), ssn: 123_45_6789)
+      User::Repository.save(user)
     }.not_to raise_exception
   end
 
   it "allows getting an entity by ID" do
-    user = Users.find(1)
+    # FIXME: Relies on the previous test saving this to the DB.
+    user = User::Repository.find(1)
     expect(user).to be_a(User)
+    expect(user.name).to eq("Craig")
   end
 
   it "allows getting entities by scope" do
-    active_users = Users.active
+    active_users = User::Repository.active
     expect(active_users.methods).to include(:each)
     expect(active_users.length).to be(1)
     # expect(active_users.first).to be(user1)
   end
 
+  it "DOES NOT allow newing up an object" do
+    expect {
+      User::Repository.new
+    }.to raise_error(NoMethodError)
+  end
+
   xit "does not allow directly accessing collections that should be accessed via scopes" do
     expect {
-      Users.where(active: true)
+      User::Repository.where(active: true)
     }.to raise_exception(NoMethodError)
   end
 end
