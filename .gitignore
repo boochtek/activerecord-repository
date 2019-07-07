@@ -47,3 +47,5 @@ bower.json
 # Ignore node_modules
 node_modules/
 
+# Spec example timings
+spec/examples.txt
