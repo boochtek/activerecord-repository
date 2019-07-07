@@ -35,7 +35,7 @@ class User
 end
 
 class User::Repository
-  include ActiveRecord.repostitory(model: User, table_name: "users")
+  include ActiveRecord.repository(model: User, table_name: "users")
   scope :active, -> { where(active: true) }
 end
 

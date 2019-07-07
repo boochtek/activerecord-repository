@@ -4,7 +4,7 @@ require "active_record/base_class_fix"
 
 module ActiveRecord
 
-  def self.repostitory(model: nil, table_name: nil)
+  def self.repository(model: nil, table_name: nil)
     ::ActiveRecord::Repository
   end
 
