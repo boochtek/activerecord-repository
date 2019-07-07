@@ -1,3 +1,4 @@
+require "./spec/spec_helper"
 require "pry"
 require "active_support"
 require "active_record"
