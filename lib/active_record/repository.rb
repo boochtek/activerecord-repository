@@ -97,6 +97,8 @@ module ActiveRecord
 
         # NOTE: Requires AttributeMethods.
         def save(entity)
+          raise ArgumentError unless entity.is_a? ActiveModel::Entity
+
           mirror_object = new(entity.attributes.transform_keys(&:to_sym))
           mirror_object.save
           entity.id = mirror_object.id

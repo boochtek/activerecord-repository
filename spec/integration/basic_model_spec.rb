@@ -170,6 +170,8 @@ RSpec.describe ActiveRecord::Repository do
     # expect(active_users.first).to be(user1)
   end
 
+  it { expect { User::Repository.save(1) }.to raise_error(ArgumentError) }
+
   it "DOES NOT allow newing up an object" do
     expect {
       User::Repository.new
