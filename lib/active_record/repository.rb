@@ -113,14 +113,16 @@ module ActiveRecord
 
         # NOTE: These should probably be protected.
 
+        def find(id)
+          where(id: id).first
+        end
+
+        protected
+
         def where(*args, **kwargs, &block)
           # TODO: Make this more robust. Allow passing model's class as module parameter.
           model_class = name.split("::").first.constantize
           super.map{ |x| model_class.new(x.attributes.transform_keys(&:to_sym)) }
-        end
-
-        def find(id)
-          where(id: id).first
         end
 
         # Don't let anyone new up a Repository themselves.

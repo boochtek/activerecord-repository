@@ -178,7 +178,7 @@ RSpec.describe ActiveRecord::Repository do
     }.to raise_error(NoMethodError)
   end
 
-  xit "does not allow directly accessing collections that should be accessed via scopes" do
+  it "does not allow directly accessing collections that should be accessed via scopes" do
     expect {
       User::Repository.where(active: true)
     }.to raise_exception(NoMethodError)
