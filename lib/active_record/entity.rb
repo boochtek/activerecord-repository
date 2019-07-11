@@ -11,10 +11,14 @@ module ActiveModel
   end
 
   def self.composite_module(modules)
-    Module.new.tap { |composite_module|
-      composite_module.define_singleton_method(:included) do |entity_module|
-        modules.each do |mod|
-          entity_module.__send__(:include, mod)
+    Module.new {
+      @modules = modules
+
+      def self.included(entity_module)
+        @modules.each do |mod|
+          entity_module.class_eval {
+            include mod
+          }
         end
       end
     }
