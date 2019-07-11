@@ -4,7 +4,7 @@ require "active_record/base_class_fix"
 
 module ActiveRecord
 
-  def self.repostitory(model: nil, table_name: nil)
+  def self.repository(model: nil, table_name: nil)
     ::ActiveRecord::Repository
   end
 
@@ -97,6 +97,8 @@ module ActiveRecord
 
         # NOTE: Requires AttributeMethods.
         def save(entity)
+          raise ArgumentError unless entity.is_a? ActiveModel::Entity
+
           mirror_object = new(entity.attributes.transform_keys(&:to_sym))
           mirror_object.save
           entity.id = mirror_object.id
@@ -111,14 +113,16 @@ module ActiveRecord
 
         # NOTE: These should probably be protected.
 
+        def find(id)
+          where(id: id).first
+        end
+
+        protected
+
         def where(*args, **kwargs, &block)
           # TODO: Make this more robust. Allow passing model's class as module parameter.
           model_class = name.split("::").first.constantize
           super.map{ |x| model_class.new(x.attributes.transform_keys(&:to_sym)) }
-        end
-
-        def find(id)
-          where(id: id).first
         end
 
         # Don't let anyone new up a Repository themselves.

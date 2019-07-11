@@ -1,3 +1,4 @@
+require "./spec/spec_helper"
 require "pry"
 require "active_support"
 require "active_record"
@@ -35,7 +36,7 @@ class User
 end
 
 class User::Repository
-  include ActiveRecord.repostitory(model: User, table_name: "users")
+  include ActiveRecord.repository(model: User, table_name: "users")
   scope :active, -> { where(active: true) }
 end
 
@@ -135,6 +136,7 @@ end
 
 
 RSpec.describe ActiveRecord::Repository do
+  let(:new_user) { User.new(name: "Craig", active: true) }
 
   xit "errors out if the repostitory fields don't include all the model attributes" do
     expect {
@@ -156,19 +158,21 @@ RSpec.describe ActiveRecord::Repository do
   end
 
   it "allows getting an entity by ID" do
-    # FIXME: Relies on the previous test saving this to the DB.
+    User::Repository.save(new_user)
     user = User::Repository.find(1)
     expect(user).to be_a(User)
     expect(user.name).to eq("Craig")
   end
 
   it "allows getting entities by scope" do
-    # FIXME: Relies on previous tests saving the right things to the DB.
+    User::Repository.save(new_user)
     active_users = User::Repository.active
     expect(active_users.methods).to include(:each)
-    expect(active_users.length).to be(1)
-    # expect(active_users.first).to be(user1)
+    expect(active_users.length).to eq(1)
+    # expect(active_users.first).to be(new_user)
   end
+
+  it { expect { User::Repository.save(1) }.to raise_error(ArgumentError) }
 
   it "DOES NOT allow newing up an object" do
     expect {
@@ -176,7 +180,7 @@ RSpec.describe ActiveRecord::Repository do
     }.to raise_error(NoMethodError)
   end
 
-  xit "does not allow directly accessing collections that should be accessed via scopes" do
+  it "does not allow directly accessing collections that should be accessed via scopes" do
     expect {
       User::Repository.where(active: true)
     }.to raise_exception(NoMethodError)
